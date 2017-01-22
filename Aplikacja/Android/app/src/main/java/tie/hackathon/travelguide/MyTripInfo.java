@@ -15,9 +15,9 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -27,13 +27,9 @@ import com.dd.processbutton.FlatButton;
 import com.gun0912.tedpicker.ImagePickerActivity;
 import com.squareup.picasso.Picasso;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.lucasr.twowayview.TwoWayView;
 
 import java.io.File;
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -41,11 +37,9 @@ import java.util.List;
 
 import Util.Constants;
 import adapters.NestedListView;
-import okhttp3.Call;
-import okhttp3.Callback;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
+import foto.PhotoIntentActivity;
+import tie.hackathon.travelguide.tables.FriendDb;
+import tie.hackathon.travelguide.tables.PodrozDB;
 
 public class MyTripInfo extends AppCompatActivity {
 
@@ -64,17 +58,22 @@ public class MyTripInfo extends AppCompatActivity {
     private ImageView iv;
     private TextView tite;
     private TextView date;
+    private TextView dateEnd;
+    private TextView description;
     private FlatButton add;
     private TwoWayView twoway;
     private NestedListView lv;
-    private AutoCompleteTextView frendname;
+    private EditText frendname;
     private List<String> fname;
     private List<File> imagesuri;
     private List<File> mediaimages;
     private Handler mHandler;
+    private ZarzadcaBazy zarzadcaBazy;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
+        zarzadcaBazy = new ZarzadcaBazy(this);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_my_trip_info);
         intent = getIntent();
@@ -89,9 +88,11 @@ public class MyTripInfo extends AppCompatActivity {
         iv = (ImageView) findViewById(R.id.image);
         tite = (TextView) findViewById(R.id.head);
         date = (TextView) findViewById(R.id.time);
+        dateEnd = (TextView) findViewById(R.id.timeEnd);
+        description = (TextView) findViewById(R.id.description);
         lv = (NestedListView) findViewById(R.id.friendlist);
         add = (FlatButton) findViewById(R.id.newfrriend);
-        frendname = (AutoCompleteTextView) findViewById(R.id.fname);
+        frendname = (EditText) findViewById(R.id.fname);
 
         Picasso.with(this).load(img).into(iv);
 
@@ -99,37 +100,16 @@ public class MyTripInfo extends AppCompatActivity {
 
         File sdDir = new File(mainfolder);
         File[] sdDirFiles = sdDir.listFiles();
-        for (File singleFile : sdDirFiles) {
-            if (!singleFile.isDirectory())
-                mediaimages.add(singleFile);
+        if (sdDirFiles != null) {
+            for (File singleFile : sdDirFiles) {
+                if (!singleFile.isDirectory())
+                    mediaimages.add(singleFile);
+            }
         }
         mediaimages.add(null);
 
         Imagesadapter ad = new Imagesadapter(this, mediaimages);
         twoway.setAdapter(ad);
-
-        frendname.setThreshold(1);
-        frendname.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                nameyet = frendname.getText().toString();
-                if (!nameyet.contains(" ")) {
-                    Log.e("name", nameyet + " ");
-                    friendautocomplete();
-                }
-
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-
-            }
-        });
 
         add.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -151,71 +131,98 @@ public class MyTripInfo extends AppCompatActivity {
                 .content("Fetching trips...")
                 .progress(true, 0)
                 .show();
+        PodrozDB podrozDB = zarzadcaBazy.getPodroz(Integer.valueOf(id));
+        title = podrozDB.getNazwa();
+        start = podrozDB.getDataStart();
+        end = podrozDB.getDataKoniec();
+        city = podrozDB.getMiasto();
 
-        // to fetch city names
-        String uri = Constants.apilink + "trip/get-one.php?trip=" + id;
-        Log.e("executing", uri + " ");
+        tite.setText(city);
+        tite = (TextView) findViewById(R.id.tname);
+        tite.setText(title);
+        final Calendar calStart = Calendar.getInstance();
+        final Calendar calEnd = Calendar.getInstance();
+        calStart.setTimeInMillis(Long.valueOf(start) * 1000);
+        calEnd.setTimeInMillis(Long.valueOf(end) * 1000);
 
+        date.setText("Started on : " + new SimpleDateFormat("dd-MM-yyyy").format(calStart.getTime()));
+        dateEnd.setText("Ended on: " + new SimpleDateFormat("dd-MM-yyyy").format(calEnd.getTime()));
 
-        //Set up client
-        OkHttpClient client = new OkHttpClient();
-        //Execute request
-        Request request = new Request.Builder()
-                .url(uri)
-                .build();
-        //Setup callback
-        client.newCall(request).enqueue(new Callback() {
-            @Override
-            public void onFailure(Call call, IOException e) {
-                Log.e("Request Failed", "Message : " + e.getMessage());
-            }
+        description.setText(podrozDB.getOpis());
+        for(FriendDb f : zarzadcaBazy.getAllFriendsByPodrozId(Integer.valueOf(id))){
+            fname.add(f.getName());
+        }
 
-            @Override
-            public void onResponse(Call call, final Response response) throws IOException {
+        Friendnameadapter dataAdapter = new Friendnameadapter(MyTripInfo.this, fname);
+        lv.setAdapter(dataAdapter);
 
-                final String res = response.body().string();
-                mHandler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        JSONObject ob;
-                        try {
-                            ob = new JSONObject(res);
-                            title = ob.getString("title");
-                            start = ob.getString("start_time");
-                            end = ob.getString("end_time");
-                            city = ob.getString("city");
+        dialog.dismiss();
 
-                            tite.setText(city);
-                            tite = (TextView) findViewById(R.id.tname);
-                            tite.setText(title);
-                            final Calendar cal = Calendar.getInstance();
-                            cal.setTimeInMillis(Long.parseLong(start) * 1000);
-                            final String timeString =
-                                    new SimpleDateFormat("dd-MMM").format(cal.getTime());
-                            date.setText("Started on : " + timeString);
-
-                            JSONArray arrr = ob.getJSONArray("users");
-                            for (int i = 0; i < arrr.length(); i++) {
-                                fname.add(arrr.getJSONObject(i).getString("name"));
-
-                                Log.e("fvdvdf", "adding " + arrr.getJSONObject(i).getString("name"));
-                            }
-
-                            Log.e("vdsv", fname.size() + " ");
-
-                            Friendnameadapter dataAdapter = new Friendnameadapter(MyTripInfo.this, fname);
-                            lv.setAdapter(dataAdapter);
-
-
-                        } catch (JSONException e1) {
-                            e1.printStackTrace();
-                        }
-                        dialog.dismiss();
-                    }
-                });
-
-            }
-        });
+//        // to fetch city names
+//        String uri = Constants.apilink + "trip/get-one.php?trip=" + id;
+//        Log.e("executing", uri + " ");
+//
+//
+//        //Set up client
+//        OkHttpClient client = new OkHttpClient();
+//        //Execute request
+//        Request request = new Request.Builder()
+//                .url(uri)
+//                .build();
+//        //Setup callback
+//        client.newCall(request).enqueue(new Callback() {
+//            @Override
+//            public void onFailure(Call call, IOException e) {
+//                Log.e("Request Failed", "Message : " + e.getMessage());
+//            }
+//
+//            @Override
+//            public void onResponse(Call call, final Response response) throws IOException {
+//
+//                final String res = response.body().string();
+//                mHandler.post(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        JSONObject ob;
+//                        try {
+//                            ob = new JSONObject(res);
+////                            title = ob.getString("title");
+//                            title = "to je jakis tytyul ";
+//                            start = ob.getString("start_time");
+//                            end = ob.getString("end_time");
+//                            city = ob.getString("city");
+//
+//                            tite.setText(city);
+//                            tite = (TextView) findViewById(R.id.tname);
+//                            tite.setText(title);
+//                            final Calendar cal = Calendar.getInstance();
+//                            cal.setTimeInMillis(Long.parseLong(start) * 1000);
+//                            final String timeString =
+//                                    new SimpleDateFormat("dd-MMM").format(cal.getTime());
+//                            date.setText("Started on : " + timeString);
+//
+//                            JSONArray arrr = ob.getJSONArray("users");
+//                            for (int i = 0; i < arrr.length(); i++) {
+//                                fname.add(arrr.getJSONObject(i).getString("name"));
+//
+//                                Log.e("fvdvdf", "adding " + arrr.getJSONObject(i).getString("name"));
+//                            }
+//
+//                            Log.e("vdsv", fname.size() + " ");
+//
+//                            Friendnameadapter dataAdapter = new Friendnameadapter(MyTripInfo.this, fname);
+//                            lv.setAdapter(dataAdapter);
+//
+//
+//                        } catch (JSONException e1) {
+//                            e1.printStackTrace();
+//                        }
+//                        dialog.dismiss();
+//                    }
+//                });
+//
+//            }
+//        });
     }
 
     @Override
@@ -239,78 +246,6 @@ public class MyTripInfo extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    private void friendautocomplete() {
-
-        String uri = Constants.apilink + "users/find.php?search=" + nameyet.trim();
-        Log.e("executing", uri + " ");
-
-
-        //Set up client
-        OkHttpClient client = new OkHttpClient();
-        //Execute request
-        Request request = new Request.Builder()
-                .url(uri)
-                .build();
-        //Setup callback
-        client.newCall(request).enqueue(new Callback() {
-            @Override
-            public void onFailure(Call call, IOException e) {
-                Log.e("Request Failed", "Message : " + e.getMessage());
-            }
-
-            @Override
-            public void onResponse(Call call, final Response response) throws IOException {
-
-                mHandler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        Log.e("YO", "Done");
-                        JSONArray arr;
-                        final ArrayList list, list1;
-                        try {
-                            arr = new JSONArray(response.body().string());
-
-                            list = new ArrayList<>();
-                            list1 = new ArrayList<>();
-                            for (int i = 0; i < arr.length(); i++) {
-                                try {
-                                    list.add(arr.getJSONObject(i).getString("name"));
-                                    list1.add(arr.getJSONObject(i).getString("id"));
-                                    Log.e("adding", "aff");
-
-                                } catch (JSONException e) {
-                                    e.printStackTrace();
-                                    Log.e("error ", " " + e.getMessage());
-                                }
-                            }
-                            ArrayAdapter<String> dataAdapter = new ArrayAdapter<>
-                                    (getApplicationContext(), R.layout.spinner_layout, list);
-                            dataAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                            frendname.setThreshold(1);
-                            frendname.setAdapter(dataAdapter);
-                            frendname.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-
-                                @Override
-                                public void onItemClick(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
-                                    // TODO Auto-generated method stub
-                                    Log.e("jkjb", "uihgiug" + arg2);
-
-                                    friendid = list1.get(arg2).toString();
-                                }
-                            });
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                            Log.e("erro", e.getMessage() + " ");
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-
-                    }
-                });
-
-            }
-        });
-    }
 
     private void addfriend() {
 
@@ -320,37 +255,12 @@ public class MyTripInfo extends AppCompatActivity {
                 .progress(true, 0)
                 .show();
 
-        String uri = Constants.apilink + "trip/add-user.php?user=" + friendid + "&trip=" + id;
-        Log.e("executing", uri + " ");
+        zarzadcaBazy.dodajFriend(frendname.getText().toString(), Integer.valueOf(id));
 
+        Toast.makeText(MyTripInfo.this, "Friend added", Toast.LENGTH_LONG).show();
+//                        finish();
+        dialog.dismiss();
 
-        //Set up client
-        OkHttpClient client = new OkHttpClient();
-        //Execute request
-        Request request = new Request.Builder()
-                .url(uri)
-                .build();
-        //Setup callback
-        client.newCall(request).enqueue(new Callback() {
-            @Override
-            public void onFailure(Call call, IOException e) {
-                Log.e("Request Failed", "Message : " + e.getMessage());
-            }
-
-            @Override
-            public void onResponse(Call call, final Response response) throws IOException {
-
-                mHandler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        Toast.makeText(MyTripInfo.this, "City added", Toast.LENGTH_LONG).show();
-                        finish();
-                        dialog.dismiss();
-                    }
-                });
-
-            }
-        });
     }
 
     public class Imagesadapter extends ArrayAdapter<File> {
@@ -381,9 +291,10 @@ public class MyTripInfo extends AppCompatActivity {
                 holder.iv.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        Intent intent = new Intent(MyTripInfo.this, ImagePickerActivity.class);
-                        startActivityForResult(intent, INTENT_REQUEST_GET_IMAGES);
-
+//                        Intent intent = new Intent(MyTripInfo.this, ImagePickerActivity.class);
+//                        startActivityForResult(intent, INTENT_REQUEST_GET_IMAGES);
+                        PhotoIntentActivity photoIntentActivity = new PhotoIntentActivity();
+                        photoIntentActivity.dispatchTakePictureIntent(1);
                     }
                 });
             } else {

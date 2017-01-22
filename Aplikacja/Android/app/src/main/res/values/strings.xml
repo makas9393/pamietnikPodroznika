@@ -45,6 +45,7 @@
     <string name="friends_of_trip">Friends in this trip </string>
     <string name="prompt_friend_name">Enter friend name</string>
     <string name="add_friend">Add New friend</string>
+    <string name="prompt_description">Enter description</string>
 
 
     <string name="car_text">Car</string>

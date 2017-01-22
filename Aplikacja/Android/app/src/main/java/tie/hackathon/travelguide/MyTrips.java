@@ -21,21 +21,15 @@ import android.widget.TextView;
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.squareup.picasso.Picasso;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
 import Util.Constants;
-import okhttp3.Call;
-import okhttp3.Callback;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
-import okhttp3.Response;
+import tie.hackathon.travelguide.tables.PodrozDB;
 
 public class MyTrips extends AppCompatActivity {
 
@@ -50,9 +44,13 @@ public class MyTrips extends AppCompatActivity {
     private String userid;
     private SharedPreferences s;
     private Handler mHandler;
+    private ZarzadcaBazy zarzadcaBazy;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
+        zarzadcaBazy = new ZarzadcaBazy(this);
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_my_trips);
 
@@ -81,6 +79,7 @@ public class MyTrips extends AppCompatActivity {
         getSupportActionBar().setHomeButtonEnabled(true);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
+
     }
 
 
@@ -103,42 +102,75 @@ public class MyTrips extends AppCompatActivity {
                 .url(uri)
                 .build();
         //Setup callback
-        client.newCall(request).enqueue(new Callback() {
-            @Override
-            public void onFailure(Call call, IOException e) {
-                Log.e("Request Failed", "Message : " + e.getMessage());
+//        client.newCall(request).enqueue(new Callback() {
+//            @Override
+//            public void onFailure(Call call, IOException e) {
+//                Log.e("Request Failed", "Message : " + e.getMessage());
+//            }
+//
+//            @Override
+//            public void onResponse(Call call, final Response response) throws IOException {
+//
+//                final String res = response.body().string();
+//                JSONArray arr;
+//                try {
+//                    arr = new JSONArray(res);
+//
+//                    for (int i = 0; i < arr.length(); i++) {
+//                        id.add(arr.getJSONObject(i).getString("id"));
+//                        start.add(arr.getJSONObject(i).getString("start_time"));
+//                        end.add(arr.getJSONObject(i).getString("end_time"));
+////                        name.add(arr.getJSONObject(i).getString("city"));
+//                        name.add("aaaa");
+//                        tname.add(arr.getJSONObject(i).getString("title"));
+//                        image.add(arr.getJSONObject(i).getString("image"));
+//                    }
+//                } catch (JSONException e) {
+//                    e.printStackTrace();
+//                    Log.e("erro", e.getMessage() + " ");
+//                }
+//                mHandler.post(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        dialog.dismiss();
+//                        g.setAdapter(new MyTripsadapter(MyTrips.this, id, name, image, start, end));
+//                    }
+//                });
+//
+//            }
+//        });
+
+            for(PodrozDB podrozDB : zarzadcaBazy.getAllTrips()){
+                name.add(podrozDB.getNazwa());
+                id.add(String.valueOf(podrozDB.getId()));
+                start.add(podrozDB.getDataStart());
+                end.add(podrozDB.getDataKoniec());
+                image.add("http://www.helpunlimited.ca/wp-content/uploads/2015/05/road-trip_rainbow-1024x685.jpg");
             }
+//            for (int i = 0; i < arr.length(); i++) {
+//                id.add(arr.getJSONObject(i).getString("id"));
+//                start.add(arr.getJSONObject(i).getString("start_time"));
+//                end.add(arr.getJSONObject(i).getString("end_time"));
+////                        name.add(arr.getJSONObject(i).getString("city"));
+//                name.add("aaaa");
+//                tname.add(arr.getJSONObject(i).getString("title"));
+//                image.add(arr.getJSONObject(i).getString("image"));
+//                mHandler.post(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        dialog.dismiss();
+//                        g.setAdapter(new MyTripsadapter(MyTrips.this, id, name, image, start, end));
+//                    }
+//                });
+//            }
 
-            @Override
-            public void onResponse(Call call, final Response response) throws IOException {
-
-                final String res = response.body().string();
-                JSONArray arr;
-                try {
-                    arr = new JSONArray(res);
-
-                    for (int i = 0; i < arr.length(); i++) {
-                        id.add(arr.getJSONObject(i).getString("id"));
-                        start.add(arr.getJSONObject(i).getString("start_time"));
-                        end.add(arr.getJSONObject(i).getString("end_time"));
-                        name.add(arr.getJSONObject(i).getString("city"));
-                        tname.add(arr.getJSONObject(i).getString("title"));
-                        image.add(arr.getJSONObject(i).getString("image"));
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                    Log.e("erro", e.getMessage() + " ");
-                }
-                mHandler.post(new Runnable() {
+        mHandler.post(new Runnable() {
                     @Override
                     public void run() {
                         dialog.dismiss();
                         g.setAdapter(new MyTripsadapter(MyTrips.this, id, name, image, start, end));
                     }
                 });
-
-            }
-        });
     }
 
 
@@ -192,7 +224,7 @@ public class MyTrips extends AppCompatActivity {
                 date.setText(start.get(position));
                 Log.e("time", start.get(position) + " " + image.get(position));
                 final Calendar cal = Calendar.getInstance();
-                cal.setTimeInMillis(Long.parseLong(start.get(position)) * 1000);
+//                cal.setTimeInMillis(Long.parseLong(start.get(position)) * 1000);
                 final String timeString =
                         new SimpleDateFormat("dd-MMM").format(cal.getTime());
                 date.setText(timeString);

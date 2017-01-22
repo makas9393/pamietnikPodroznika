@@ -3,10 +3,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="tie.hackathon.travelguide">
 
-
-    <uses-feature
-        android:name="android.hardware.bluetooth_le"
-        tools:node="remove" />
     <uses-permission-sdk-23
         android:name="android.permission.ACCESS_COARSE_LOCATION"
         tools:node="remove" />
@@ -38,6 +34,7 @@
         android:screenOrientation="portrait"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+
 
 
 
@@ -135,5 +132,7 @@
         <activity android:name=".MyTripInfo" />
         <activity android:name=".Tweets"/>
     </application>
+
+
 
 </manifest>

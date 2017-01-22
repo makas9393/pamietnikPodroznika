@@ -11,7 +11,7 @@
     tools:context="tie.hackathon.travelguide.AddNewTrip">
 
 
-    <TextInputEditText
+    <EditText
         android:id="@+id/tripname"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -33,6 +33,19 @@
         android:backgroundTint="#000000"
         android:ems="10"
         android:hint="@string/prompt_city_name"
+        android:popupBackground="#ffffff"
+        android:singleLine="true"
+        android:textColor="#000000"
+        android:textColorHint="#000000" />
+
+    <AutoCompleteTextView
+        android:id="@+id/description"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:backgroundTint="#000000"
+        android:ems="10"
+        android:hint="@string/prompt_description"
         android:popupBackground="#ffffff"
         android:singleLine="true"
         android:textColor="#000000"
