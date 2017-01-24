@@ -61,7 +61,9 @@ public class PhotoIntentActivity extends Activity {
 		File storageDir = null;
 
 		if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())) {
-			
+			if(mAlbumStorageDirFactory == null){
+				mAlbumStorageDirFactory = new FroyoAlbumDirFactory();
+			}
 			storageDir = mAlbumStorageDirFactory.getAlbumStorageDir(getAlbumName());
 
 			if (storageDir != null) {

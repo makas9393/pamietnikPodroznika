@@ -1,12 +1,21 @@
 package tie.hackathon.travelguide;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.content.res.TypedArray;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
+import android.provider.MediaStore;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -15,9 +24,12 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
+import android.widget.Button;
 import android.widget.EditText;
+import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -33,11 +45,10 @@ import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
-import Util.Constants;
 import adapters.NestedListView;
-import foto.PhotoIntentActivity;
 import tie.hackathon.travelguide.tables.FriendDb;
 import tie.hackathon.travelguide.tables.PodrozDB;
 
@@ -49,10 +60,8 @@ public class MyTripInfo extends AppCompatActivity {
     private String start;
     private String end;
     private String city;
-    private String friendid;
     private String img;
     private final String mainfolder = "/storage/emulated/0/Pictures/";
-    private String nameyet;
     private Intent intent;
     private MaterialDialog dialog;
     private ImageView iv;
@@ -61,14 +70,14 @@ public class MyTripInfo extends AppCompatActivity {
     private TextView dateEnd;
     private TextView description;
     private FlatButton add;
-    private TwoWayView twoway;
     private NestedListView lv;
     private EditText frendname;
     private List<String> fname;
-    private List<File> imagesuri;
     private List<File> mediaimages;
-    private Handler mHandler;
     private ZarzadcaBazy zarzadcaBazy;
+    private Button takePictureButton;
+    private GridView gridView;
+    private GridViewAdapter gridAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,10 +90,8 @@ public class MyTripInfo extends AppCompatActivity {
         img = intent.getStringExtra("_image");
 
         mediaimages = new ArrayList<>();
-        imagesuri = new ArrayList<>();
         fname = new ArrayList<>();
 
-        twoway = (TwoWayView) findViewById(R.id.lv);
         iv = (ImageView) findViewById(R.id.image);
         tite = (TextView) findViewById(R.id.head);
         date = (TextView) findViewById(R.id.time);
@@ -96,8 +103,6 @@ public class MyTripInfo extends AppCompatActivity {
 
         Picasso.with(this).load(img).into(iv);
 
-        mHandler = new Handler(Looper.getMainLooper());
-
         File sdDir = new File(mainfolder);
         File[] sdDirFiles = sdDir.listFiles();
         if (sdDirFiles != null) {
@@ -107,9 +112,6 @@ public class MyTripInfo extends AppCompatActivity {
             }
         }
         mediaimages.add(null);
-
-        Imagesadapter ad = new Imagesadapter(this, mediaimages);
-        twoway.setAdapter(ad);
 
         add.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -122,6 +124,60 @@ public class MyTripInfo extends AppCompatActivity {
 
         getSupportActionBar().setHomeButtonEnabled(true);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+        takePictureButton = (Button) findViewById(R.id.btn_take_picture);
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+            takePictureButton.setEnabled(false);
+            ActivityCompat.requestPermissions(this, new String[] { Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE }, 0);
+        }
+
+        gridView = (GridView) findViewById(R.id.gridView);
+        gridAdapter = new GridViewAdapter(this, R.layout.grid_item_layout, getData());
+        gridView.setAdapter(gridAdapter);
+
+        gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
+                ImageItem item = (ImageItem) parent.getItemAtPosition(position);
+
+                //Create intent
+                Intent intent = new Intent(MyTripInfo.this, DetailsActivity.class);
+                intent.putExtra("title", item.getTitle());
+                intent.putExtra("image", item.getImage());
+
+                //Start details activity
+                startActivity(intent);
+            }
+        });
+    }
+
+
+    private ArrayList<ImageItem> getData() {
+        final ArrayList<ImageItem> imageItems = new ArrayList<>();
+        TypedArray imgs = getResources().obtainTypedArray(R.array.image_ids);
+//        "123_asdasd.png".split("_")[0];
+        File imagesFolder = new File(Environment.getExternalStorageDirectory(), "MyImages");
+        File files [] = imagesFolder.listFiles();
+        Integer licznik = 1;
+        if(files != null && files.length > 0){
+            for(File f : imagesFolder.listFiles()){
+                try {
+                    Integer idFile = Integer.valueOf(f.getName().split("_")[0]);
+                    if(idFile.equals(Integer.valueOf(id))){
+                        imageItems.add(new ImageItem(BitmapFactory.decodeFile(f.getAbsolutePath()), licznik.toString()));
+                        licznik++;
+                    }
+                }catch (Exception e){
+                    //
+                }
+
+            }
+        }
+//        for (int i = 0; i < imgs.length(); i++) {
+//            Bitmap bitmap = BitmapFactory.decodeResource(getResources(), imgs.getResourceId(i, -1));
+//            imageItems.add(new ImageItem(bitmap, "Image#" + i));
+//        }
+        return imageItems;
     }
 
     private void mytrip() {
@@ -157,72 +213,6 @@ public class MyTripInfo extends AppCompatActivity {
         lv.setAdapter(dataAdapter);
 
         dialog.dismiss();
-
-//        // to fetch city names
-//        String uri = Constants.apilink + "trip/get-one.php?trip=" + id;
-//        Log.e("executing", uri + " ");
-//
-//
-//        //Set up client
-//        OkHttpClient client = new OkHttpClient();
-//        //Execute request
-//        Request request = new Request.Builder()
-//                .url(uri)
-//                .build();
-//        //Setup callback
-//        client.newCall(request).enqueue(new Callback() {
-//            @Override
-//            public void onFailure(Call call, IOException e) {
-//                Log.e("Request Failed", "Message : " + e.getMessage());
-//            }
-//
-//            @Override
-//            public void onResponse(Call call, final Response response) throws IOException {
-//
-//                final String res = response.body().string();
-//                mHandler.post(new Runnable() {
-//                    @Override
-//                    public void run() {
-//                        JSONObject ob;
-//                        try {
-//                            ob = new JSONObject(res);
-////                            title = ob.getString("title");
-//                            title = "to je jakis tytyul ";
-//                            start = ob.getString("start_time");
-//                            end = ob.getString("end_time");
-//                            city = ob.getString("city");
-//
-//                            tite.setText(city);
-//                            tite = (TextView) findViewById(R.id.tname);
-//                            tite.setText(title);
-//                            final Calendar cal = Calendar.getInstance();
-//                            cal.setTimeInMillis(Long.parseLong(start) * 1000);
-//                            final String timeString =
-//                                    new SimpleDateFormat("dd-MMM").format(cal.getTime());
-//                            date.setText("Started on : " + timeString);
-//
-//                            JSONArray arrr = ob.getJSONArray("users");
-//                            for (int i = 0; i < arrr.length(); i++) {
-//                                fname.add(arrr.getJSONObject(i).getString("name"));
-//
-//                                Log.e("fvdvdf", "adding " + arrr.getJSONObject(i).getString("name"));
-//                            }
-//
-//                            Log.e("vdsv", fname.size() + " ");
-//
-//                            Friendnameadapter dataAdapter = new Friendnameadapter(MyTripInfo.this, fname);
-//                            lv.setAdapter(dataAdapter);
-//
-//
-//                        } catch (JSONException e1) {
-//                            e1.printStackTrace();
-//                        }
-//                        dialog.dismiss();
-//                    }
-//                });
-//
-//            }
-//        });
     }
 
     @Override
@@ -238,6 +228,34 @@ public class MyTripInfo extends AppCompatActivity {
 
         }
     }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        if (requestCode == 0) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED
+                    && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
+                takePictureButton.setEnabled(true);
+            }
+        }
+    }
+
+
+    public void takePicture(View view) {
+        Intent imageIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+
+//folder stuff
+        File imagesFolder = new File(Environment.getExternalStorageDirectory(), "MyImages");
+        imagesFolder.mkdirs();
+
+        File image = new File(imagesFolder, id + "_" + timeStamp + ".png");
+
+        Uri uriSavedImage = Uri.fromFile(image);
+
+        imageIntent.putExtra(MediaStore.EXTRA_OUTPUT, uriSavedImage);
+        startActivityForResult(imageIntent, 1);
+    }
+
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -258,66 +276,8 @@ public class MyTripInfo extends AppCompatActivity {
         zarzadcaBazy.dodajFriend(frendname.getText().toString(), Integer.valueOf(id));
 
         Toast.makeText(MyTripInfo.this, "Friend added", Toast.LENGTH_LONG).show();
-//                        finish();
         dialog.dismiss();
 
-    }
-
-    public class Imagesadapter extends ArrayAdapter<File> {
-        private final Activity context;
-        private final List<File> name;
-
-
-        Imagesadapter(Activity context, List<File> name) {
-            super(context, R.layout.trip_listitem, name);
-            this.context = context;
-            this.name = name;
-        }
-
-        @Override
-        public View getView(final int position, View view, ViewGroup parent) {
-            ViewHolder holder;
-            LayoutInflater mInflater = (LayoutInflater) context.getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
-            if (view == null) {
-                view = mInflater.inflate(R.layout.image_listitem, null);
-                holder = new ViewHolder();
-                holder.iv = (ImageView) view.findViewById(R.id.iv);
-
-                view.setTag(holder);
-            } else
-                holder = (ViewHolder) view.getTag();
-            if (position == name.size() - 1) {
-                holder.iv.setImageResource(R.drawable.add_image);
-                holder.iv.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-//                        Intent intent = new Intent(MyTripInfo.this, ImagePickerActivity.class);
-//                        startActivityForResult(intent, INTENT_REQUEST_GET_IMAGES);
-                        PhotoIntentActivity photoIntentActivity = new PhotoIntentActivity();
-                        photoIntentActivity.dispatchTakePictureIntent(1);
-                    }
-                });
-            } else {
-                holder.iv.setImageDrawable(Drawable.createFromPath(name.get(position).getAbsolutePath()));
-                holder.iv.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        Intent i = new Intent(MyTripInfo.this, EventImage.class);
-                        ArrayList<String> a = new ArrayList<>();
-                        a.add(name.get(position).getAbsolutePath());
-
-                        i.putExtra(Constants.EVENT_IMG, a);
-                        i.putExtra(Constants.EVENT_NAME, "Image");
-                        startActivity(i);
-                    }
-                });
-            }
-            return view;
-        }
-
-        private class ViewHolder {
-            ImageView iv;
-        }
     }
 
     public class Friendnameadapter extends ArrayAdapter<String> {

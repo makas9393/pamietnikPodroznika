@@ -87,6 +87,28 @@
             android:textStyle="bold" />
 
 
+        <GridView
+            android:id="@+id/gridView"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="5dp"
+            android:columnWidth="100dp"
+            android:drawSelectorOnTop="true"
+            android:gravity="center"
+            android:numColumns="auto_fit"
+            android:stretchMode="columnWidth"
+            android:verticalSpacing="5dp"
+            android:focusable="true"
+            android:clickable="true"/>
+
+        <Button
+            android:id="@+id/button_image"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:onClick="takePicture"
+            android:text="Take a picture!"/>
+
+
         <org.lucasr.twowayview.TwoWayView
             android:id="@+id/lv"
             android:layout_width="wrap_content"
