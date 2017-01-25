@@ -95,82 +95,22 @@ public class MyTrips extends AppCompatActivity {
         Log.e("executing", uri + " ");
 
 
-        //Set up client
-        OkHttpClient client = new OkHttpClient();
-        //Execute request
-        final Request request = new Request.Builder()
-                .url(uri)
-                .build();
-        //Setup callback
-//        client.newCall(request).enqueue(new Callback() {
-//            @Override
-//            public void onFailure(Call call, IOException e) {
-//                Log.e("Request Failed", "Message : " + e.getMessage());
-//            }
-//
-//            @Override
-//            public void onResponse(Call call, final Response response) throws IOException {
-//
-//                final String res = response.body().string();
-//                JSONArray arr;
-//                try {
-//                    arr = new JSONArray(res);
-//
-//                    for (int i = 0; i < arr.length(); i++) {
-//                        id.add(arr.getJSONObject(i).getString("id"));
-//                        start.add(arr.getJSONObject(i).getString("start_time"));
-//                        end.add(arr.getJSONObject(i).getString("end_time"));
-////                        name.add(arr.getJSONObject(i).getString("city"));
-//                        name.add("aaaa");
-//                        tname.add(arr.getJSONObject(i).getString("title"));
-//                        image.add(arr.getJSONObject(i).getString("image"));
-//                    }
-//                } catch (JSONException e) {
-//                    e.printStackTrace();
-//                    Log.e("erro", e.getMessage() + " ");
-//                }
-//                mHandler.post(new Runnable() {
-//                    @Override
-//                    public void run() {
-//                        dialog.dismiss();
-//                        g.setAdapter(new MyTripsadapter(MyTrips.this, id, name, image, start, end));
-//                    }
-//                });
-//
-//            }
-//        });
+        for (PodrozDB podrozDB : zarzadcaBazy.getAllTrips()) {
+            name.add(podrozDB.getNazwa());
+            id.add(String.valueOf(podrozDB.getId()));
+            start.add(podrozDB.getDataStart());
+            end.add(podrozDB.getDataKoniec());
+            image.add("http://www.helpunlimited.ca/wp-content/uploads/2015/05/road-trip_rainbow-1024x685.jpg");
+        }
 
-            for(PodrozDB podrozDB : zarzadcaBazy.getAllTrips()){
-                name.add(podrozDB.getNazwa());
-                id.add(String.valueOf(podrozDB.getId()));
-                start.add(podrozDB.getDataStart());
-                end.add(podrozDB.getDataKoniec());
-                image.add("http://www.helpunlimited.ca/wp-content/uploads/2015/05/road-trip_rainbow-1024x685.jpg");
-            }
-//            for (int i = 0; i < arr.length(); i++) {
-//                id.add(arr.getJSONObject(i).getString("id"));
-//                start.add(arr.getJSONObject(i).getString("start_time"));
-//                end.add(arr.getJSONObject(i).getString("end_time"));
-////                        name.add(arr.getJSONObject(i).getString("city"));
-//                name.add("aaaa");
-//                tname.add(arr.getJSONObject(i).getString("title"));
-//                image.add(arr.getJSONObject(i).getString("image"));
-//                mHandler.post(new Runnable() {
-//                    @Override
-//                    public void run() {
-//                        dialog.dismiss();
-//                        g.setAdapter(new MyTripsadapter(MyTrips.this, id, name, image, start, end));
-//                    }
-//                });
-//            }
 
         mHandler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        dialog.dismiss();
-                        g.setAdapter(new MyTripsadapter(MyTrips.this, id, name, image, start, end));
-                    }
-                });
+            @Override
+            public void run() {
+                dialog.dismiss();
+                g.setAdapter(new MyTripsadapter(MyTrips.this, id, name, image, start, end));
+            }
+        });
     }
 
 
@@ -186,6 +126,7 @@ public class MyTrips extends AppCompatActivity {
         private final List<String> ids, name, image, start, end;
         ImageView city;
         TextView cityname, date;
+
         public MyTripsadapter(Activity context, List<String> id, List<String> name, List<String> image, List<String> start, List<String> end) {
             super(context, R.layout.trip_listitem, id);
             this.context = context;

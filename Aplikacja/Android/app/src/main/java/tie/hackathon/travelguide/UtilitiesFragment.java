@@ -24,10 +24,9 @@ public class UtilitiesFragment extends Fragment implements View.OnClickListener 
                              Bundle savedInstanceState) {
 
         View v = inflater.inflate(R.layout.fragment_utility, container, false);
-        sharecontact = (LinearLayout) v.findViewById(R.id.sharecontact);
         checklist = (LinearLayout) v.findViewById(R.id.checklist);
 
-        sharecontact.setOnClickListener(this);
+//        sharecontact.setOnClickListener(this);
         checklist.setOnClickListener(this);
 
         return v;
@@ -43,10 +42,6 @@ public class UtilitiesFragment extends Fragment implements View.OnClickListener 
     public void onClick(View view) {
         Intent intent;
         switch (view.getId()) {
-            case R.id.sharecontact:
-                intent = new Intent(activity, ShareContact.class);
-                startActivity(intent);
-                break;
             case R.id.checklist:
                 intent = new Intent(activity, Checklist.class);
                 startActivity(intent);

@@ -43,7 +43,7 @@
         jumboMode="true"
         optimize="true"
         revision="23.0.3"
-        sha1="88467ddfce9ff8b36d3ed6f8d98154a50c35b6fb">
+        sha1="f7bc064b4f155842c74a8bf934a9203f588cf566">
         <dex dex="H:\pobrane\Travel-Mate-master\Android\app\build\intermediates\transforms\dex\debug\folders\1000\10\instant-run_48ea64f02ff0832819390508ffeab65696bdbec6\classes.dex" />
     </item>
     <item
@@ -232,7 +232,7 @@
         jumboMode="true"
         optimize="true"
         revision="23.0.3"
-        sha1="434377efdc991f59c2e4aaaf39676e4f39fc4bec">
+        sha1="ca7ed04141a315263906b50d3b0014570de875ab">
         <dex dex="H:\pobrane\Travel-Mate-master\Android\app\build\intermediates\transforms\dex\debug\folders\1000\10\instant-run-bootstrap_9e138a995e92dc6de9af9ddf3604feadc0b13964\classes.dex" />
     </item>
     <item

@@ -19,9 +19,6 @@ public class EmergencyFragment extends Fragment implements View.OnClickListener 
     private Button police;
     private Button fire;
     private Button ambulance;
-    private Button blood_bank;
-    private Button bomb;
-    private Button railways;
     private Activity activity;
 
     public EmergencyFragment() {
@@ -35,16 +32,13 @@ public class EmergencyFragment extends Fragment implements View.OnClickListener 
         police = (Button) v.findViewById(R.id.police);
         fire = (Button) v.findViewById(R.id.fire);
         ambulance = (Button) v.findViewById(R.id.ambulance);
-        blood_bank = (Button) v.findViewById(R.id.blood_bank);
-        bomb = (Button) v.findViewById(R.id.bomb);
-        railways = (Button) v.findViewById(R.id.railways);
 
         police.setOnClickListener(this);
         fire.setOnClickListener(this);
         ambulance.setOnClickListener(this);
-        blood_bank.setOnClickListener(this);
-        bomb.setOnClickListener(this);
-        railways.setOnClickListener(this);
+//        blood_bank.setOnClickListener(this);
+//        bomb.setOnClickListener(this);
+//        railways.setOnClickListener(this);
 
         return v;
     }
@@ -69,14 +63,6 @@ public class EmergencyFragment extends Fragment implements View.OnClickListener 
             case R.id.ambulance:
                 intent.setData(Uri.parse("tel:102"));
                 break;
-            case R.id.blood_bank:
-                intent.setData(Uri.parse("tel:25752924"));
-                break;
-            case R.id.bomb:
-                intent.setData(Uri.parse("tel:22512201"));
-                break;
-            case R.id.railways:
-                intent.setData(Uri.parse("tel:23366177"));
         }
         startActivity(intent);
     }

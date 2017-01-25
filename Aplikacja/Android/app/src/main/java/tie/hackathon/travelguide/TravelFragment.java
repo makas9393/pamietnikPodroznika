@@ -58,25 +58,25 @@ public class TravelFragment extends Fragment implements View.OnClickListener {
 
         switch (view.getId()) {
 
-            case R.id.vehicle:
-                i = new Intent(activity, SelectModeOfTransport.class);
-                startActivity(i);
-                break;
-
-            case R.id.shopping:
-                i = new Intent(activity, ShoppingCurrentCity.class);
-                startActivity(i);
-                break;
-
-            case R.id.accomo:
-                i = new Intent(activity, Hotels.class);
-                startActivity(i);
-                break;
-
-            case R.id.realtime:
-                i = new Intent(activity, MapRealTimeActivity.class);
-                startActivity(i);
-                break;
+//            case R.id.vehicle:
+//                i = new Intent(activity, SelectModeOfTransport.class);
+//                startActivity(i);
+//                break;
+//
+//            case R.id.shopping:
+//                i = new Intent(activity, ShoppingCurrentCity.class);
+//                startActivity(i);
+//                break;
+//
+//            case R.id.accomo:
+//                i = new Intent(activity, Hotels.class);
+//                startActivity(i);
+//                break;
+//
+//            case R.id.realtime:
+//                i = new Intent(activity, MapRealTimeActivity.class);
+//                startActivity(i);
+//                break;
 
             case R.id.mytrips:
                 i = new Intent(activity, MyTrips.class);
